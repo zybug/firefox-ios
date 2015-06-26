@@ -13,12 +13,12 @@ protocol HomeStorageItem {
 }
 
 protocol HomeStorage {
-    func save(items: [HomeStorageItem])
+    func save(items: [String])
     func deleteAll()
 }
 
 protocol HomeProvider {
-    func getStorage(datasetId: String) -> HomeStorage
+    func getStorage(datasetId: String) -> String
     func requestSync(datasetId: String, callback: String)
     func addPeriodicSync(datasetId: String, callback: String)
     func removePeriodicSync(datasetId: String)
