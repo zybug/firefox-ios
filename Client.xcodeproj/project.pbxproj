@@ -518,13 +518,16 @@
 		E4F21AA61A13C4A300B0FAAA /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E4F21AA51A13C4A300B0FAAA /* Images.xcassets */; };
 		E4F480F51A954660003C0444 /* SWXMLHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D38B2D811A8D98380040E6B5 /* SWXMLHash.framework */; };
 		E4F481041A95466A003C0444 /* SWXMLHash.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D38B2D811A8D98380040E6B5 /* SWXMLHash.framework */; };
-		E636CFAE1B3DD4DB002BD116 /* AddonEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E636CFAD1B3DD4DB002BD116 /* AddonEngine.swift */; };
+		E60E716E1B3F15FC00A422AC /* JSHomePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60E716D1B3F15FC00A422AC /* JSHomePanels.swift */; };
+		E60E71701B3F160C00A422AC /* JSHomeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60E716F1B3F160C00A422AC /* JSHomeProvider.swift */; };
+		E60E71741B3F29AF00A422AC /* test.js in Resources */ = {isa = PBXBuildFile; fileRef = E60E71731B3F29AF00A422AC /* test.js */; };
+		E60E71761B3F2D8100A422AC /* JSBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E60E71751B3F2D8100A422AC /* JSBootstrap.swift */; };
+		E613019B1B3DF92C00191713 /* bootstrap.js in Resources */ = {isa = PBXBuildFile; fileRef = E613019A1B3DF92C00191713 /* bootstrap.js */; };
+		E636CFAE1B3DD4DB002BD116 /* JSInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = E636CFAD1B3DD4DB002BD116 /* JSInterface.swift */; };
 		E65072A31B2737DA001A0AC6 /* GeometryExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A99D761B20D95800006EDD /* GeometryExtensions.swift */; };
 		E65072A41B273824001A0AC6 /* GeometryExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A99D761B20D95800006EDD /* GeometryExtensions.swift */; };
 		E68AEDB01B18F81A00133D99 /* SwipeAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68AEDAF1B18F81A00133D99 /* SwipeAnimator.swift */; };
 		E6EAC5961B29CB3A00E1DE1E /* scrollablePage.html in Resources */ = {isa = PBXBuildFile; fileRef = E6EAC5951B29CB3A00E1DE1E /* scrollablePage.html */; };
-		E6EBD93E1B3CB7AF0056F8EE /* HomeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EBD93D1B3CB7AF0056F8EE /* HomeProvider.swift */; };
-		E6EBD9401B3CB9670056F8EE /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EBD93F1B3CB9670056F8EE /* Home.swift */; };
 		E6EBD9421B3CC0510056F8EE /* ExtensionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EBD9411B3CC0510056F8EE /* ExtensionPanel.swift */; };
 		E6F965121B2F1CF20034B023 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288A2D861AB8B3260023ABC3 /* Shared.framework */; };
 		E6F9653C1B2F1D5D0034B023 /* NSURLExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F9653B1B2F1D5D0034B023 /* NSURLExtensionsTests.swift */; };
@@ -1493,12 +1496,15 @@
 		E4ECCD8C1AB091470005E717 /* Reader.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Reader.xcassets; sourceTree = "<group>"; };
 		E4ECCDAD1AB131770005E717 /* FiraSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "FiraSans-Medium.ttf"; sourceTree = "<group>"; };
 		E4F21AA51A13C4A300B0FAAA /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		E636CFAD1B3DD4DB002BD116 /* AddonEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonEngine.swift; sourceTree = "<group>"; };
+		E60E716D1B3F15FC00A422AC /* JSHomePanels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSHomePanels.swift; sourceTree = "<group>"; };
+		E60E716F1B3F160C00A422AC /* JSHomeProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSHomeProvider.swift; sourceTree = "<group>"; };
+		E60E71731B3F29AF00A422AC /* test.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = test.js; sourceTree = "<group>"; };
+		E60E71751B3F2D8100A422AC /* JSBootstrap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSBootstrap.swift; sourceTree = "<group>"; };
+		E613019A1B3DF92C00191713 /* bootstrap.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = bootstrap.js; sourceTree = "<group>"; };
+		E636CFAD1B3DD4DB002BD116 /* JSInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSInterface.swift; sourceTree = "<group>"; };
 		E68AEDAF1B18F81A00133D99 /* SwipeAnimator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwipeAnimator.swift; sourceTree = "<group>"; };
 		E6A99D761B20D95800006EDD /* GeometryExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryExtensions.swift; sourceTree = "<group>"; };
 		E6EAC5951B29CB3A00E1DE1E /* scrollablePage.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = scrollablePage.html; sourceTree = "<group>"; };
-		E6EBD93D1B3CB7AF0056F8EE /* HomeProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeProvider.swift; sourceTree = "<group>"; };
-		E6EBD93F1B3CB9670056F8EE /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		E6EBD9411B3CC0510056F8EE /* ExtensionPanel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtensionPanel.swift; sourceTree = "<group>"; };
 		E6F9650C1B2F1CF20034B023 /* SharedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SharedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6F9650F1B2F1CF20034B023 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -2418,21 +2424,22 @@
 			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		E636CFAF1B3DD4F9002BD116 /* API */ = {
+		E60E714C1B3F15D100A422AC /* JSInterface */ = {
 			isa = PBXGroup;
 			children = (
-				E6EBD93D1B3CB7AF0056F8EE /* HomeProvider.swift */,
-				E6EBD93F1B3CB9670056F8EE /* Home.swift */,
+				E636CFAD1B3DD4DB002BD116 /* JSInterface.swift */,
+				E60E716D1B3F15FC00A422AC /* JSHomePanels.swift */,
+				E60E716F1B3F160C00A422AC /* JSHomeProvider.swift */,
+				E60E71751B3F2D8100A422AC /* JSBootstrap.swift */,
 			);
-			name = API;
+			name = JSInterface;
 			sourceTree = "<group>";
 		};
 		E6EBD93C1B3CAE780056F8EE /* Addons */ = {
 			isa = PBXGroup;
 			children = (
-				E636CFAF1B3DD4F9002BD116 /* API */,
+				E60E714C1B3F15D100A422AC /* JSInterface */,
 				E6EBD9411B3CC0510056F8EE /* ExtensionPanel.swift */,
-				E636CFAD1B3DD4DB002BD116 /* AddonEngine.swift */,
 			);
 			name = Addons;
 			sourceTree = "<group>";
@@ -2594,6 +2601,8 @@
 				0BA1E02F1B051A07007675AF /* NetError.css */,
 				746D4E561B1E7132008F789F /* HashchangeHelper.js */,
 				746B6A781B277C1800EA83E3 /* SessionRestore.html */,
+				E613019A1B3DF92C00191713 /* bootstrap.js */,
+				E60E71731B3F29AF00A422AC /* test.js */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -3561,6 +3570,7 @@
 				E4B7B77E1A793CF20022C5E0 /* FiraSans-SemiBold.ttf in Resources */,
 				F84B220B1A0910F600AAB793 /* Images.xcassets in Resources */,
 				E49943F71AE69EDD00BF9DE4 /* Intro.xcassets in Resources */,
+				E613019B1B3DF92C00191713 /* bootstrap.js in Resources */,
 				E4B7B7631A793CF20022C5E0 /* CharisSILI.ttf in Resources */,
 				E4CD9F541A71506400318571 /* Reader.html in Resources */,
 				0B3E7DBC1B27ABB200E2E84D /* HashchangeHelper.js in Resources */,
@@ -3568,6 +3578,7 @@
 				2F1BDF921A8523B000213B54 /* LICENSE in Resources */,
 				0BD75AD31AF2EE5A00B48915 /* suggestedsites.json in Resources */,
 				E4CD9F5B1A71506C00318571 /* Reader.css in Resources */,
+				E60E71741B3F29AF00A422AC /* test.js in Resources */,
 				E4B7B7611A793CF20022C5E0 /* CharisSILB.ttf in Resources */,
 				E4B7B7621A793CF20022C5E0 /* CharisSILBI.ttf in Resources */,
 				E4A961361AC052DE0069AD6F /* ReadabilityBrowserHelper.js in Resources */,
@@ -3966,7 +3977,7 @@
 				0BF0DB941A8545800039F300 /* URLBarView.swift in Sources */,
 				E42475E51AB73B9B00B23D33 /* SWUtilityButtonTapGestureRecognizer.m in Sources */,
 				D38B2D2E1A8D96D00040E6B5 /* GCDWebServer.m in Sources */,
-				E636CFAE1B3DD4DB002BD116 /* AddonEngine.swift in Sources */,
+				E636CFAE1B3DD4DB002BD116 /* JSInterface.swift in Sources */,
 				E42475E81AB73B9B00B23D33 /* SWUtilityButtonView.m in Sources */,
 				0B3E7DB81B27A7F600E2E84D /* AboutUtils.swift in Sources */,
 				D301AAEE1A3A55B70078DD1D /* TabTrayController.swift in Sources */,
@@ -3982,7 +3993,6 @@
 				0BB5B2891AC0A2B90052877D /* Toolbar.swift in Sources */,
 				E6EBD9421B3CC0510056F8EE /* ExtensionPanel.swift in Sources */,
 				D38B2D461A8D96D00040E6B5 /* GCDWebServerURLEncodedFormRequest.m in Sources */,
-				E6EBD9401B3CB9670056F8EE /* Home.swift in Sources */,
 				D38B2D4C1A8D96D00040E6B5 /* GCDWebServerErrorResponse.m in Sources */,
 				E4CD9F2D1A6DC91200318571 /* BrowserLocationView.swift in Sources */,
 				0BB5B2881AC0A2B90052877D /* SnackBar.swift in Sources */,
@@ -4003,7 +4013,6 @@
 				0BF42D371A7C0B8E00889E28 /* FaviconManager.swift in Sources */,
 				6BB2FD981B017DAB001A189B /* AuralProgressBar.swift in Sources */,
 				D38B2D341A8D96D00040E6B5 /* GCDWebServerFunctions.m in Sources */,
-				E6EBD93E1B3CB7AF0056F8EE /* HomeProvider.swift in Sources */,
 				D34510881ACF415700EC27F0 /* SearchLoader.swift in Sources */,
 				D30B101E1AA7F9C600C01CA3 /* HomePanels.swift in Sources */,
 				F84B22041A0910F600AAB793 /* AppDelegate.swift in Sources */,
@@ -4024,8 +4033,11 @@
 				2F44FCC51A9E85E900FD20CC /* SettingsTableViewController.swift in Sources */,
 				2F44FCCB1A9E972E00FD20CC /* SearchEnginePicker.swift in Sources */,
 				0BF0DBC01A8598D50039F300 /* TransitionManager.swift in Sources */,
+				E60E71701B3F160C00A422AC /* JSHomeProvider.swift in Sources */,
 				2F834D1A1A80629A006A0B7B /* FxAContentViewController.swift in Sources */,
+				E60E716E1B3F15FC00A422AC /* JSHomePanels.swift in Sources */,
 				D34DC8531A16C40C00D49B7B /* Profile.swift in Sources */,
+				E60E71761B3F2D8100A422AC /* JSBootstrap.swift in Sources */,
 				D38B2D3A1A8D96D00040E6B5 /* GCDWebServerResponse.m in Sources */,
 				D3FEC38D1AC4B42F00494F45 /* AutocompleteTextField.swift in Sources */,
 				0BD19A671A25309B0084FBA7 /* NSUserDefaultsPrefs.swift in Sources */,

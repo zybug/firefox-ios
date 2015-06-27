@@ -4,22 +4,22 @@
 
 import Foundation
 
-protocol HomeStorageItem {
-    var url: String { get }
-    var title: String? { get }
-    var description: String? { get }
-    var imageUrl: String? { get }
-    var filter: String? { get }
-}
-
-protocol HomeStorage {
-    func save(items: [String])
-    func deleteAll()
-}
-
-protocol HomeProvider {
-    func getStorage(datasetId: String) -> String
-    func requestSync(datasetId: String, callback: String)
-    func addPeriodicSync(datasetId: String, callback: String)
-    func removePeriodicSync(datasetId: String)
-}
+//protocol HomeStorageItem {
+//    var url: String { get }
+//    var title: String? { get }
+//    var description: String? { get }
+//    var imageUrl: String? { get }
+//    var filter: String? { get }
+//}
+//
+//protocol HomeStorage {
+//    func save(items: [String])
+//    func deleteAll()
+//}
+//
+//protocol HomeProvider {
+//    func getStorage(datasetId: String) -> String
+//    func requestSync(datasetId: String, callback: String)
+//    func addPeriodicSync(datasetId: String, callback: String)
+//    func removePeriodicSync(datasetId: String)
+//}
