@@ -5,7 +5,27 @@
 import Foundation
 import JavaScriptCore
 
-//MARK: Swift Implementation
-struct BootstrapStructure {
-
-}
+////MARK: Swift Implementation
+//struct BootstrapStructure {
+//    let id: String
+//    let version: String
+//    let installPath: String
+//    let resourceURI: String
+//    let oldVersion: String
+//    let newVersion: String
+//
+//    private var jsonDictionary = [String: AnyObject]()
+//
+//    init() {
+//        jsonDictionary["id"] = id
+//        jsonDictionary["version"] = version
+//        jsonDictionary["installPath"] = installPath
+//        jsonDictionary["resourceURI"] = resourceURI
+//        jsonDictionary["oldVersion"] = oldVersion
+//        jsonDictionary["newVersion"] = newVersion
+//    }
+//
+//    func jsonString() -> String {
+//        return jsonDictionary.description
+//    }
+//}

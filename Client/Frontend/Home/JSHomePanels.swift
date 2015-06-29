@@ -9,11 +9,11 @@ import JavaScriptCore
 @objc protocol JSHomePanels: JSExport {
 //    var View: JSPanelViewType { get }
 //
-//    func register(id: String, callback: String)
+    func register(id: String, options: [String:AnyObject])
 //    func unregister(id: String)
     func install(id: String)
 //    func uninstall(id: String)
-//    func update(id: String)
+    func update(id: String)
 //    func setAuthenticated(id: String, isAuthenticated: Bool)
 }
 
@@ -39,8 +39,8 @@ import JavaScriptCore
 class AddonHomePanels: NSObject, JSHomePanels {
     var View: JSPanelViewType = PanelViewType()
 
-    func register(id: String, callback: String) {
-        println("register")
+    func register(id: String, options: [String:AnyObject]) {
+        println("registered \(id) with options \(options)")
     }
 
     func unregister(id: String) {

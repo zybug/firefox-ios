@@ -1,33 +1,33 @@
-//const PANEL_ID = "catfacts.panel@margaretleibovic.com";
-//const DATASET_ID = "catfacts.dataset@margaretleibovic.com";
-//const DATA_URL = "http://catfacts-api.appspot.com/api/facts?number=20";
+const PANEL_ID = "catfacts.panel@margaretleibovic.com";
+const DATASET_ID = "catfacts.dataset@margaretleibovic.com";
+const DATA_URL = "http://catfacts-api.appspot.com/api/facts?number=20";
 //
-//function optionsCallback() {
-//    return {
-//    title: Strings.GetStringFromName("title"),
-//    views: [{
-//            type: HomePanels.View.LIST,
-//            dataset: DATASET_ID,
-//            onrefresh: refreshDataset
-//            }]
-//    };
-//}
+function optionsCallback() {
+    return {
+    title: Strings.GetStringFromName("title"),
+    views: [{
+            type: HomePanels.View.LIST,
+            dataset: DATASET_ID,
+            onrefresh: refreshDataset
+            }]
+    };
+}
 //
-//function refreshDataset() {
-//    fetchData(DATA_URL, function(response) {
-//              Task.spawn(function() {
-//                         let items = JSON.parse(response).facts.map(function(fact) {
-//                                                                    return {
-//                                                                    url: "http://catfacts-api.appspot.com/",
-//                                                                    description: fact
-//                                                                    };
-//                                                                    });
-//                         let storage = HomeProvider.getStorage(DATASET_ID);
-//                         yield storage.deleteAll();
-//                         yield storage.save(items);
-//                         }).then(null, e => Cu.reportError("Error refreshing dataset " + DATASET_ID + ": " + e));
-//              });
-//}
+function refreshDataset() {
+    fetchData(DATA_URL, function(response) {
+              Task.spawn(function() {
+                         let items = JSON.parse(response).facts.map(function(fact) {
+                                                                    return {
+                                                                    url: "http://catfacts-api.appspot.com/",
+                                                                    description: fact
+                                                                    };
+                                                                    });
+                         let storage = HomeProvider.getStorage(DATASET_ID);
+                         yield storage.deleteAll();
+                         yield storage.save(items);
+                         }).then(null, e => Cu.reportError("Error refreshing dataset " + DATASET_ID + ": " + e));
+              });
+}
 
 //function deleteDataset() {
 //    Task.spawn(function() {

@@ -41,23 +41,16 @@ public class JSInterface: NSObject {
     private func jsBootstrapStructureWithProperties(#id: String, version: String, installPath: String,
                                                     resourceURI: String, oldVersion: String,
                                                     newVersion: String) -> String {
-        var value = JSValue()
-
-        value.defineProperty("id", descriptor: nil)
-        value.defineProperty("version", descriptor: nil)
-        value.defineProperty("installPath", descriptor: nil)
-        value.defineProperty("resourceURI", descriptor: nil)
-        value.defineProperty("oldVersion", descriptor: nil)
-        value.defineProperty("newVersion", descriptor: nil)
-
-        value.setValue(id, forProperty: "id")
-        value.setValue(version, forProperty: "version")
-        value.setValue(installPath, forProperty: "installPath")
-        value.setValue(resourceURI, forProperty: "resourceURI")
-        value.setValue(oldVersion, forProperty: "oldVersion")
-        value.setValue(newVersion, forProperty: "newVersion")
-
-        return value.toString()
+        let structure: [String: String] = [
+            "id": id,
+            "version": version,
+            "installPath": installPath,
+            "resourceURI": resourceURI,
+            "oldVersion": oldVersion,
+            "newVersion": newVersion
+        ]
+        let data = NSJSONSerialization.dataWithJSONObject(structure, options: NSJSONWritingOptions.allZeros, error: nil)
+        return NSString(data: data!, encoding: NSUTF8StringEncoding) as! String
     }
 
     private func defineGlobalsInContext(context: JSContext) {
@@ -72,7 +65,7 @@ public class JSInterface: NSObject {
     private func invokeBootstrapMethod(method: String, data: String, reason: AddonState, withScript url: NSURL) {
         //TODO: Figure out a way to load the addon script into the VM or something so we don't have to execute it everytime.
         var script = NSString(contentsOfURL: url, encoding: NSUTF8StringEncoding, error: nil) as! String
-        script += ";\(method)(\"\(data)\", \(reason))"
+        script += ";\(method)(\(data), \(reason.rawValue))"
         jsContext.evaluateScript(script)
     }
 
