@@ -24,6 +24,13 @@ struct AboutLicenseHandler {
                 print("Unable to register webserver \(error)")
             }
             return GCDWebServerResponse(statusCode: 200)
-       }
+        }
+    }
+}
+
+extension GCDWebServerDataResponse {
+    convenience init(XHTML: String) {
+        let data = XHTML.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)
+        self.init(data: data, contentType: "application/xhtml+xml; charset=utf-8")
     }
 }

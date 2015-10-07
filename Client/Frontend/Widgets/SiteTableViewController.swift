@@ -9,29 +9,27 @@ struct SiteTableViewControllerUX {
     static let HeaderHeight = CGFloat(25)
     static let RowHeight = CGFloat(58)
     static let HeaderBorderColor = UIColor(rgb: 0xCFD5D9).colorWithAlphaComponent(0.8)
-    static let HeaderTextColor = UIColor(rgb: 0x232323)
+    static let HeaderTextColor = UIAccessibilityDarkerSystemColorsEnabled() ? UIColor.blackColor() : UIColor(rgb: 0x232323)
     static let HeaderBackgroundColor = UIColor(rgb: 0xECF0F3).colorWithAlphaComponent(0.3)
+    static let HeaderFont = UIFont.systemFontOfSize(11, weight: UIFontWeightMedium)
 }
 
-private class SiteTableViewHeader : UITableViewHeaderFooterView {
+class SiteTableViewHeader : UITableViewHeaderFooterView {
     // I can't get drawRect to play nicely with the glass background. As a fallback
     // we just use views for the top and bottom borders.
     let topBorder = UIView()
     let bottomBorder = UIView()
 
-    init(frame: CGRect) {
-        super.init(reuseIdentifier: nil)
-        didLoad()
-    }
-
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
-    }
-
-    private func didLoad() {
         addSubview(topBorder)
         addSubview(bottomBorder)
         backgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .ExtraLight))
+
+        textLabel?.font = SiteTableViewControllerUX.HeaderFont
+        textLabel?.textColor = SiteTableViewControllerUX.HeaderTextColor
+        textLabel?.textAlignment = .Center
+        contentView.backgroundColor = SiteTableViewControllerUX.HeaderBackgroundColor
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -44,10 +42,6 @@ private class SiteTableViewHeader : UITableViewHeaderFooterView {
         topBorder.backgroundColor = SiteTableViewControllerUX.HeaderBorderColor
         bottomBorder.backgroundColor = SiteTableViewControllerUX.HeaderBorderColor
         super.layoutSubviews()
-        textLabel?.font = UIFont.systemFontOfSize(11, weight: UIFontWeightMedium)
-        textLabel?.textColor = UIAccessibilityDarkerSystemColorsEnabled() ? UIColor.blackColor() : SiteTableViewControllerUX.HeaderTextColor
-        textLabel?.textAlignment = .Center
-        contentView.backgroundColor = SiteTableViewControllerUX.HeaderBackgroundColor
     }
 }
 

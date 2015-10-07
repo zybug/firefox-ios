@@ -44,7 +44,7 @@ class RecordTests: XCTestCase {
         let invalidPayload = "{\"id\": \"abcdefghijkl\", \"collection\": \"clients\", \"payload\": \"invalid\"}"
         let emptyPayload = "{\"id\": \"abcdefghijkl\", \"collection\": \"clients\", \"payload\": \"{}\"}"
 
-        let clientBody: [String: AnyObject] = ["name": "Foobar", "commands": [], "type": "mobile"]
+        let clientBody: [String: AnyObject] = ["id": "abcdefghijkl", "name": "Foobar", "commands": [], "type": "mobile"]
         let clientBodyString = JSON(clientBody).toString(false)
         let clientRecord: [String : AnyObject] = ["id": "abcdefghijkl", "collection": "clients", "payload": clientBodyString]
         let clientPayload = JSON(clientRecord).toString(false)
@@ -63,7 +63,9 @@ class RecordTests: XCTestCase {
 
         // Only payloads that parse as JSON are valid.
         XCTAssertNil(Record<CleartextPayloadJSON>.fromEnvelope(EnvelopeJSON(invalidPayload), payloadFactory: clearFactory))
-        XCTAssertNotNil(Record<CleartextPayloadJSON>.fromEnvelope(EnvelopeJSON(emptyPayload), payloadFactory: clearFactory))
+
+        // Missing ID.
+        XCTAssertNil(Record<CleartextPayloadJSON>.fromEnvelope(EnvelopeJSON(emptyPayload), payloadFactory: clearFactory))
 
         // Only valid ClientPayloads are valid.
         XCTAssertNil(Record<ClientPayload>.fromEnvelope(EnvelopeJSON(invalidPayload), payloadFactory: cleartextClientsFactory))
@@ -197,5 +199,80 @@ class RecordTests: XCTestCase {
 
         // fromJSON returns nil if not valid.
         XCTAssertNotNil(LoginPayload.fromJSON(input))
+    }
+
+    func testSeparators() {
+        // Mistyped parentid.
+        let invalidSeparator = JSON(["type": "separator", "arentid": "toolbar", "parentName": "Bookmarks Toolbar", "pos": 3])
+        XCTAssertNil(BookmarkType.payloadFromJSON(invalidSeparator))
+
+        // This one's right.
+        let validSeparator = JSON(["id": "abcabcabcabc", "type": "separator", "parentid": "toolbar", "parentName": "Bookmarks Toolbar", "pos": 3])
+        let separator = BookmarkType.payloadFromJSON(validSeparator)!
+        XCTAssertTrue(separator is SeparatorPayload)
+        XCTAssertTrue(separator.isValid())
+        XCTAssertEqual(3, separator["pos"].asInt!)
+    }
+
+    func testFolders() {
+        let validFolder = JSON([
+            "id": "abcabcabcabc",
+            "type": "folder",
+            "parentid": "toolbar",
+            "parentName": "Bookmarks Toolbar",
+            "title": "Sóme stüff",
+            "description": "",
+            "children": ["foo", "bar"],
+        ])
+        let folder = BookmarkType.payloadFromJSON(validFolder)!
+        XCTAssertTrue(folder is FolderPayload)
+        XCTAssertEqual((folder as! FolderPayload).children, ["foo", "bar"])
+    }
+
+    func testBookmarks() {
+        let validBookmark = JSON([
+            "id": "abcabcabcabc",
+            "type": "bookmark",
+            "parentid": "menu",
+            "parentName": "Bookmarks Menu",
+            "title": "Anøther",
+            "bmkUri": "http://terrible.sync/naming",
+            "description": "",
+            "tags": [],
+            "keyword": "",
+            ])
+        let bookmark = BookmarkType.payloadFromJSON(validBookmark)
+        XCTAssertTrue(bookmark is BookmarkPayload)
+
+        let query = JSON.parse("{\"id\":\"ShCZLGEFQMam\",\"type\":\"query\",\"title\":\"Downloads\",\"parentName\":\"\",\"bmkUri\":\"place:transition=7&sort=4\",\"tags\":[],\"keyword\":null,\"description\":null,\"loadInSidebar\":false,\"parentid\":\"T6XK5oJMU8ih\"}")
+        let q = BookmarkType.payloadFromJSON(query)
+        XCTAssertTrue(q is BookmarkQueryPayload)
+        XCTAssertTrue(q is MirrorItemable)
+        guard let item = (q as? MirrorItemable)?.toMirrorItem(NSDate.now()) else {
+            XCTFail("Not mirrorable!")
+            return
+        }
+
+        XCTAssertEqual(6, item.type.rawValue)
+        XCTAssertEqual("ShCZLGEFQMam", item.guid)
+
+        let places = JSON.parse("{\"id\":\"places\",\"type\":\"folder\",\"title\":\"\",\"description\":null,\"children\":[\"menu________\",\"toolbar_____\",\"tags________\",\"unfiled_____\",\"jKnyPDrBQSDg\",\"T6XK5oJMU8ih\"],\"parentid\":\"2hYxKgBwvkEH\"}")
+        let p = BookmarkType.payloadFromJSON(places)
+        XCTAssertTrue(p is FolderPayload)
+        XCTAssertTrue(p is MirrorItemable)
+
+        // Items keep their GUID until they're written into the mirror table.
+        XCTAssertEqual("places", p!.id)
+
+        guard let pMirror = (p as? MirrorItemable)?.toMirrorItem(NSDate.now()) else {
+            XCTFail("Not mirrorable!")
+            return
+        }
+
+        XCTAssertEqual(2, pMirror.type.rawValue)
+
+        // The mirror item has a translated GUID.
+        XCTAssertEqual(BookmarkRoots.RootGUID, pMirror.guid)
+
     }
 }

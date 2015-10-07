@@ -93,8 +93,8 @@ class ReadingListTableViewCell: SWTableViewCell {
         }
     }
 
-    private let deleteAction: UIAccessibilityCustomAction
-    private let markAsReadAction: UIAccessibilityCustomAction
+    private var deleteAction: UIAccessibilityCustomAction!
+    private var markAsReadAction: UIAccessibilityCustomAction!
 
     let readStatusImageView: UIImageView!
     let titleLabel: UILabel!
@@ -108,8 +108,6 @@ class ReadingListTableViewCell: SWTableViewCell {
         hostnameLabel = UILabel()
         deleteButton = UIButton()
         markAsReadButton = UIButton()
-        deleteAction = UIAccessibilityCustomAction()
-        markAsReadAction = UIAccessibilityCustomAction()
 
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
@@ -155,11 +153,8 @@ class ReadingListTableViewCell: SWTableViewCell {
         deleteButton.setTitle(ReadingListTableViewCellUX.DeleteButtonTitleText, forState: UIControlState.Normal)
         deleteButton.setTitleColor(UIColor.whiteColor(), forState: UIControlState.Normal)
         deleteButton.titleEdgeInsets = ReadingListTableViewCellUX.DeleteButtonTitleEdgeInsets
-        if let text = deleteButton.titleLabel?.text {
-            deleteAction.name = text
-        }
-        deleteAction.target = self
-        deleteAction.selector = "deleteActionActivated"
+        deleteAction = UIAccessibilityCustomAction(name: ReadingListTableViewCellUX.DeleteButtonTitleText, target: self, selector: "deleteActionActivated")
+
         rightUtilityButtons = [deleteButton]
 
         markAsReadButton.backgroundColor = ReadingListTableViewCellUX.MarkAsReadButtonBackgroundColor
@@ -170,11 +165,8 @@ class ReadingListTableViewCell: SWTableViewCell {
         markAsReadButton.setTitle(ReadingListTableViewCellUX.MarkAsReadButtonTitleText, forState: UIControlState.Normal)
         markAsReadButton.setTitleColor(UIColor.whiteColor(), forState: UIControlState.Normal)
         markAsReadButton.titleEdgeInsets = ReadingListTableViewCellUX.MarkAsReadButtonTitleEdgeInsets
-        if let text = markAsReadButton.titleLabel?.text {
-            markAsReadAction.name = text
-        }
-        markAsReadAction.target = self
-        markAsReadAction.selector = "markAsReadActionActivated"
+        markAsReadAction = UIAccessibilityCustomAction(name: ReadingListTableViewCellUX.MarkAsReadButtonTitleText, target: self, selector: "markAsReadActionActivated")
+
         leftUtilityButtons = [markAsReadButton]
 
         accessibilityCustomActions = [deleteAction, markAsReadAction]
@@ -228,12 +220,6 @@ class ReadingListTableViewCell: SWTableViewCell {
     }
 }
 
-class ReadingListEmptyStateView: UIView {
-    convenience init() {
-        self.init(frame: CGRectZero)
-    }
-}
-
 class ReadingListPanel: UITableViewController, HomePanel, SWTableViewCellDelegate {
     weak var homePanelDelegate: HomePanelDelegate? = nil
     var profile: Profile!
@@ -245,7 +231,6 @@ class ReadingListPanel: UITableViewController, HomePanel, SWTableViewCellDelegat
     init() {
         super.init(nibName: nil, bundle: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "notificationReceived:", name: NotificationFirefoxAccountChanged, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "notificationReceived:", name: NotificationPrivateDataCleared, object: nil)
     }
 
     required init!(coder aDecoder: NSCoder) {
@@ -280,12 +265,11 @@ class ReadingListPanel: UITableViewController, HomePanel, SWTableViewCellDelegat
 
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self, name: NotificationFirefoxAccountChanged, object: nil)
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: NotificationPrivateDataCleared, object: nil)
     }
 
     func notificationReceived(notification: NSNotification) {
         switch notification.name {
-        case NotificationFirefoxAccountChanged, NotificationPrivateDataCleared:
+        case NotificationFirefoxAccountChanged:
             refreshReadingList()
             break
         default:

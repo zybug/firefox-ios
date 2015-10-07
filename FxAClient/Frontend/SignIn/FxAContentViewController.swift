@@ -8,7 +8,7 @@ import SnapKit
 import UIKit
 import WebKit
 
-protocol FxAContentViewControllerDelegate {
+protocol FxAContentViewControllerDelegate: class {
     func contentViewControllerDidSignIn(viewController: FxAContentViewController, data: JSON) -> Void
     func contentViewControllerDidCancel(viewController: FxAContentViewController)
 }
@@ -30,7 +30,7 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
         case SignOut = "sign_out"
     }
 
-    var delegate: FxAContentViewControllerDelegate?
+    weak var delegate: FxAContentViewControllerDelegate?
 
     init() {
         super.init(backgroundColor: UIColor(red: 242 / 255.0, green: 242 / 255.0, blue: 242 / 255.0, alpha: 1.0), title: NSAttributedString(string: "Firefox Accounts"))
@@ -69,6 +69,7 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
             configuration: config
         )
         webView.navigationDelegate = self
+        webView.accessibilityLabel = NSLocalizedString("Web content", comment: "Accessibility label for the main web content view")
 
         // Don't allow overscrolling.
         webView.scrollView.bounces = false
@@ -77,7 +78,6 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
 
     // Send a message to the content server.
     func injectData(type: String, content: [String: AnyObject]) {
-        NSLog("injectData: " + type)
         let data = [
             "type": type,
             "content": content,
@@ -106,14 +106,12 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
 
     // The user has signed in to a Firefox Account.  We're done!
     private func onLogin(data: JSON) {
-        NSLog("onLogin: " + data.toString())
         injectData("message", content: ["status": "login"])
         self.delegate?.contentViewControllerDidSignIn(self, data: data)
     }
 
     // The content server page is ready to be shown.
     private func onLoaded() {
-        NSLog("Handling loaded remote command.");
         self.timer?.invalidate()
         self.timer = nil
         self.isLoaded = true
@@ -122,11 +120,8 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
     // Handle a message coming from the content server.
     func handleRemoteCommand(rawValue: String, data: JSON) {
         if let command = RemoteCommand(rawValue: rawValue) {
-            NSLog("Handling remote command '\(rawValue)' .");
-
             if !isLoaded && command != .Loaded {
                 // Work around https://github.com/mozilla/fxa-content-server/issues/2137
-                NSLog("Synthesizing loaded remote command.")
                 onLoaded()
             }
 
@@ -142,8 +137,6 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
             case .SignOut:
                 onSignOut(data)
             }
-        } else {
-            NSLog("Unknown remote command '\(rawValue)'; ignoring.");
         }
     }
 
@@ -153,8 +146,6 @@ class FxAContentViewController: SettingsContentViewController, WKScriptMessageHa
             let body = JSON(message.body)
             let detail = body["detail"]
             handleRemoteCommand(detail["command"].asString!, data: detail["data"])
-        } else {
-            NSLog("Got unrecognized message \(message)")
         }
     }
 

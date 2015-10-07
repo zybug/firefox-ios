@@ -10,6 +10,19 @@ private let TypeSearch = "text/html"
 private let TypeSuggest = "application/x-suggestions+json"
 private let SearchTermsAllowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789*-_."
 
+extension NSCharacterSet {
+    class func URLAllowedCharacterSet() -> NSCharacterSet {
+        let characterSet = NSMutableCharacterSet()
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLQueryAllowedCharacterSet())
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLUserAllowedCharacterSet())
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLPathAllowedCharacterSet())
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLPasswordAllowedCharacterSet())
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLHostAllowedCharacterSet())
+        characterSet.formUnionWithCharacterSet(NSCharacterSet.URLFragmentAllowedCharacterSet())
+        return characterSet
+    }
+}
+
 class OpenSearchEngine {
     static let PreferredIconSize = 30
 
@@ -47,10 +60,18 @@ class OpenSearchEngine {
 
     private func getURLFromTemplate(searchTemplate: String, query: String) -> NSURL? {
         let allowedCharacters = NSCharacterSet(charactersInString: SearchTermsAllowedCharacters)
-
         if let escapedQuery = query.stringByAddingPercentEncodingWithAllowedCharacters(allowedCharacters) {
-            let urlString = searchTemplate.stringByReplacingOccurrencesOfString("{searchTerms}", withString: escapedQuery, options: NSStringCompareOptions.LiteralSearch, range: nil)
-            return NSURL(string: urlString)
+            // Escape the search template as well in case it contains not-safe characters like symbols
+            let templateAllowedSet = NSMutableCharacterSet()
+            templateAllowedSet.formUnionWithCharacterSet(NSCharacterSet.URLAllowedCharacterSet())
+
+            // Allow brackets since we use them in our template as our insertion point
+            templateAllowedSet.formUnionWithCharacterSet(NSCharacterSet(charactersInString: "{}"))
+
+            if let encodedSearchTemplate = searchTemplate.stringByAddingPercentEncodingWithAllowedCharacters(templateAllowedSet) {
+                let urlString = encodedSearchTemplate.stringByReplacingOccurrencesOfString("{searchTerms}", withString: escapedQuery, options: NSStringCompareOptions.LiteralSearch, range: nil)
+                return NSURL(string: urlString)
+            }
         }
 
         return nil

@@ -70,7 +70,7 @@ extension FxAClientError: MaybeErrorType {
             let messageString = error.message ?? NSLocalizedString("Missing message", comment: "Error for a missing remote error message")
             return "<FxAClientError.Remote \(error.code)/\(error.errno): \(errorString) (\(messageString))>"
         case let .Local(error):
-            return "<FxAClientError.Local \(error.description)>"
+            return "<FxAClientError.Local Error Domain=\(error.domain) Code=\(error.code) \"\(error.localizedDescription)\">"
         }
     }
 }
@@ -229,7 +229,7 @@ public class FxAClient10 {
 
         var URL: NSURL = self.URL.URLByAppendingPathComponent("/account/login")
         if getKeys {
-            let components = NSURLComponents(URL: self.URL.URLByAppendingPathComponent("/account/login"), resolvingAgainstBaseURL: false)!
+            let components = NSURLComponents(URL: URL, resolvingAgainstBaseURL: false)!
             components.query = "keys=true"
             URL = components.URL!
         }
@@ -240,27 +240,30 @@ public class FxAClient10 {
         mutableURLRequest.HTTPBody = JSON(parameters).toString(false).utf8EncodedData
 
         alamofire.request(mutableURLRequest)
-            .validate(contentType: ["application/json"])
-            .responseJSON { (request, response, result) in
-                if let error = result.error as? NSError {
-                    deferred.fill(Maybe(failure: FxAClientError.Local(error)))
-                    return
-                }
+                 .validate(contentType: ["application/json"])
+                 .responseJSON { (request, response, result) in
 
-                if let data: AnyObject = result.value { // Declaring the type quiets a Swift warning about inferring AnyObject.
-                    let json = JSON(data)
-                    if let remoteError = FxAClient10.remoteErrorFromJSON(json, statusCode: response!.statusCode) {
-                        deferred.fill(Maybe(failure: FxAClientError.Remote(remoteError)))
-                        return
+                    // Don't cancel requests just because our Manager is deallocated.
+                    withExtendedLifetime(self.alamofire) {
+                        if let error = result.error as? NSError {
+                            deferred.fill(Maybe(failure: FxAClientError.Local(error)))
+                            return
+                        }
+
+                        if let data: AnyObject = result.value { // Declaring the type quiets a Swift warning about inferring AnyObject.
+                            let json = JSON(data)
+                            if let remoteError = FxAClient10.remoteErrorFromJSON(json, statusCode: response!.statusCode) {
+                                deferred.fill(Maybe(failure: FxAClientError.Remote(remoteError)))
+                                return
+                            }
+
+                            if let response = FxAClient10.loginResponseFromJSON(json) {
+                                deferred.fill(Maybe(success: response))
+                                return
+                            }
+                        }
+                        deferred.fill(Maybe(failure: FxAClientError.Local(FxAClientUnknownError)))
                     }
-
-                    if let response = FxAClient10.loginResponseFromJSON(json) {
-                        deferred.fill(Maybe(success: response))
-                        return
-                    }
-                }
-
-                deferred.fill(Maybe(failure: FxAClientError.Local(FxAClientUnknownError)))
         }
         return deferred
     }

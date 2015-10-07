@@ -90,7 +90,7 @@ let Commands: [String: (String, [JSON]) -> Command?] = [
     "displayURI": DisplayURICommand.fromName,
 ]
 
-public class ClientsSynchronizer: BaseSingleCollectionSynchronizer, Synchronizer {
+public class ClientsSynchronizer: TimestampedSingleCollectionSynchronizer, Synchronizer {
     public required init(scratchpad: Scratchpad, delegate: SyncDelegate, basePrefs: Prefs) {
         super.init(scratchpad: scratchpad, delegate: delegate, basePrefs: basePrefs, collection: "clients")
     }
@@ -178,9 +178,9 @@ public class ClientsSynchronizer: BaseSingleCollectionSynchronizer, Synchronizer
 
     private func uploadClientCommands(toLocalClients localClients: RemoteClientsAndTabs, withServer storageClient: Sync15CollectionClient<ClientPayload>) -> Success {
         return localClients.getCommands() >>== { clientCommands in
-            return allSucceed(clientCommands.map { (clientGUID, commands) -> Success in
+            return clientCommands.map { (clientGUID, commands) -> Success in
                 self.syncClientCommands(clientGUID, commands: commands, clientsAndTabs: localClients, withServer: storageClient)
-            })
+            }.allSucceed()
         }
     }
 

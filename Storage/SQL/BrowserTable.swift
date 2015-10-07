@@ -9,6 +9,8 @@ import XCGLogger
 // To keep SwiftData happy.
 
 let TableBookmarks = "bookmarks"
+let TableBookmarksMirror = "bookmarksMirror"                           // Added in v9.
+let TableBookmarksMirrorStructure = "bookmarksMirrorStructure"         // Added in v10.
 
 let TableFavicons = "favicons"
 let TableHistory = "history"
@@ -24,15 +26,19 @@ let ViewIconForURL = "view_icon_for_url"
 let IndexHistoryShouldUpload = "idx_history_should_upload"
 let IndexVisitsSiteIDDate = "idx_visits_siteID_date"                   // Removed in v6.
 let IndexVisitsSiteIDIsLocalDate = "idx_visits_siteID_is_local_date"   // Added in v6.
+let IndexBookmarksMirrorStructureParentIdx = "idx_bookmarksMirrorStructure_parent_idx"   // Added in v10.
 
 private let AllTables: Args = [
     TableDomains,
+    TableFavicons,
     TableFaviconSites,
 
     TableHistory,
     TableVisits,
 
     TableBookmarks,
+    TableBookmarksMirror,
+    TableBookmarksMirrorStructure,
 
     TableQueuedTabs,
 ]
@@ -46,6 +52,7 @@ private let AllViews: Args = [
 private let AllIndices: Args = [
     IndexHistoryShouldUpload,
     IndexVisitsSiteIDIsLocalDate,
+    IndexBookmarksMirrorStructureParentIdx,
 ]
 
 private let AllTablesIndicesAndViews: Args = AllViews + AllIndices + AllTables
@@ -57,7 +64,7 @@ private let log = Logger.syncLogger
  * We rely on SQLiteHistory having initialized the favicon table first.
  */
 public class BrowserTable: Table {
-    static let DefaultVersion = 7
+    static let DefaultVersion = 10
     let version: Int
     var name: String { return "BROWSER" }
     let sqliteVersion: Int32
@@ -168,8 +175,74 @@ public class BrowserTable: Table {
                ") "
     }
 
+    func getBookmarksMirrorTableCreationString(forVersion version: Int = BrowserTable.DefaultVersion) -> String? {
+        if version < 9 {
+            return nil
+        }
+
+        // The stupid absence of naming conventions here is thanks to pre-Sync Weave. Sorry.
+        // For now we have the simplest possible schema: everything in one.
+        let sql =
+        "CREATE TABLE IF NOT EXISTS \(TableBookmarksMirror) " +
+
+        // Shared fields.
+        "( id INTEGER PRIMARY KEY AUTOINCREMENT" +
+        ", guid TEXT NOT NULL UNIQUE" +
+        ", type TINYINT NOT NULL" +                    // Type enum. TODO: BookmarkNodeType needs to be extended.
+
+        // Record/envelope metadata that'll allow us to do merges.
+        ", server_modified INTEGER NOT NULL" +         // Milliseconds.
+        ", is_deleted TINYINT NOT NULL DEFAULT 0" +    // Boolean
+
+        ", hasDupe TINYINT NOT NULL DEFAULT 0" +       // Boolean, 0 (false) if deleted.
+        ", parentid TEXT" +                            // GUID
+        ", parentName TEXT" +
+
+        // Type-specific fields. These should be NOT NULL in many cases, but we're going
+        // for a sparse schema, so this'll do for now. Enforce these in the application code.
+        ", feedUri TEXT, siteUri TEXT" +               // LIVEMARKS
+        ", pos INT" +                                  // SEPARATORS
+        ", title TEXT, description TEXT" +             // FOLDERS, BOOKMARKS, QUERIES
+        ", bmkUri TEXT, tags TEXT, keyword TEXT" +     // BOOKMARKS, QUERIES
+        ", folderName TEXT, queryId TEXT" +            // QUERIES
+        ", CONSTRAINT parentidOrDeleted CHECK (parentid IS NOT NULL OR is_deleted = 1)" +
+        ", CONSTRAINT parentNameOrDeleted CHECK (parentName IS NOT NULL OR is_deleted = 1)" +
+        ")"
+
+        return sql
+    }
+
+    /**
+     * We need to explicitly store what's provided by the server, because we can't rely on
+     * referenced child nodes to exist yet!
+     */
+    func getBookmarksMirrorStructureTableCreationString(forVersion version: Int = BrowserTable.DefaultVersion) -> String? {
+        if version < 10 {
+            return nil
+        }
+
+        // TODO: index me.
+        let sql =
+        "CREATE TABLE IF NOT EXISTS \(TableBookmarksMirrorStructure) " +
+        "( parent TEXT NOT NULL REFERENCES \(TableBookmarksMirror)(guid) ON DELETE CASCADE" +
+        ", child TEXT NOT NULL" +      // Should be the GUID of a child.
+        ", idx INTEGER NOT NULL" +     // Should advance from 0.
+        ")"
+
+        return sql
+    }
 
     func create(db: SQLiteDBConnection, version: Int) -> Bool {
+        let favicons =
+        "CREATE TABLE IF NOT EXISTS \(TableFavicons) (" +
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        "url TEXT NOT NULL UNIQUE, " +
+        "width INTEGER, " +
+        "height INTEGER, " +
+        "type INTEGER NOT NULL, " +
+        "date REAL NOT NULL" +
+        ") "
+
         // Right now we don't need to track per-visit deletions: Sync can't
         // represent them! See Bug 1157553 Comment 6.
         // We flip the should_upload flag on the history item when we add a visit.
@@ -247,11 +320,21 @@ public class BrowserTable: Table {
         "title TEXT" +
         ") "
 
+        let bookmarksMirror = getBookmarksMirrorTableCreationString()
+        let bookmarksMirrorStructure = getBookmarksMirrorStructureTableCreationString()
+
+        let indexStructureParentIdx = "CREATE INDEX IF NOT EXISTS \(IndexBookmarksMirrorStructureParentIdx) " +
+            "ON \(TableBookmarksMirrorStructure) (parent, idx)"
+
         let queries: [(String?, Args?)] = [
             (getDomainsTableCreationString(forVersion: version), nil),
             (getHistoryTableCreationString(forVersion: version), nil),
+            (favicons, nil),
             (visits, nil),
             (bookmarks, nil),
+            (bookmarksMirror, nil),
+            (bookmarksMirrorStructure, nil),
+            (indexStructureParentIdx, nil),
             (faviconSites, nil),
             (indexShouldUpload, nil),
             (indexSiteIDDate, nil),
@@ -320,6 +403,29 @@ public class BrowserTable: Table {
             let urls = db.executeQuery("SELECT DISTINCT url FROM \(TableHistory) WHERE url IS NOT NULL",
                                        factory: { $0["url"] as! String })
             if !fillDomainNamesFromCursor(urls, db: db) {
+                return false
+            }
+        }
+
+        if from < 8 && to == 8 {
+            // Nothing to do: we're just shifting the favicon table to be owned by this class.
+            return true
+        }
+
+        if from < 9 && to >= 9 {
+            if !self.run(db, sql: getBookmarksMirrorTableCreationString(forVersion: to)!) {
+                return false
+            }
+        }
+
+        if from < 10 && to >= 10 {
+            if !self.run(db, sql: getBookmarksMirrorStructureTableCreationString(forVersion: to)!) {
+                return false
+            }
+
+            let indexStructureParentIdx = "CREATE INDEX IF NOT EXISTS \(IndexBookmarksMirrorStructureParentIdx) " +
+                                          "ON \(TableBookmarksMirrorStructure) (parent, idx)"
+            if !self.run(db, sql: indexStructureParentIdx) {
                 return false
             }
         }

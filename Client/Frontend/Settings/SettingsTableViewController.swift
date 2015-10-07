@@ -11,6 +11,15 @@ import XCGLogger
 private var ShowDebugSettings: Bool = false
 private var DebugSettingsClickCount: Int = 0
 
+// The following are only here because we use master for L10N and otherwise these strings would disappear from the v1.0 release
+private let Bug1204635_S1 = NSLocalizedString("Clear Everything", tableName: "ClearPrivateData", comment: "Title of the Clear private data dialog.")
+private let Bug1204635_S2 = NSLocalizedString("Are you sure you want to clear all of your data? This will also close all open tabs.", tableName: "ClearPrivateData", comment: "Message shown in the dialog prompting users if they want to clear everything")
+private let Bug1204635_S3 = NSLocalizedString("Clear", tableName: "ClearPrivateData", comment: "Used as a button label in the dialog to Clear private data dialog")
+private let Bug1204635_S4 = NSLocalizedString("Cancel", tableName: "ClearPrivateData", comment: "Used as a button label in the dialog to cancel clear private data dialog")
+
+// The following are strings for bug 1162174 - Support third party passwords
+private let Bug1162174_S1 = NSLocalizedString("Save Logins", comment: "Setting to enable the built-in password manager")
+
 // A base TableViewCell, to help minimize initialization and allow recycling.
 class SettingsTableViewCell: UITableViewCell {
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
@@ -168,7 +177,7 @@ private class ConnectSetting: WithoutAccountSetting {
     override var accessoryType: UITableViewCellAccessoryType { return .DisclosureIndicator }
 
     override var title: NSAttributedString? {
-        return NSAttributedString(string: NSLocalizedString("Sign in", comment: "Text message / button in the settings table view"), attributes: [NSForegroundColorAttributeName: UIConstants.TableViewRowTextColor])
+        return NSAttributedString(string: NSLocalizedString("Sign In", comment: "Text message / button in the settings table view"), attributes: [NSForegroundColorAttributeName: UIConstants.TableViewRowTextColor])
     }
 
     override func onClick(navigationController: UINavigationController?) {
@@ -219,8 +228,23 @@ private class SyncNowSetting: WithAccountSetting {
         return profile.syncManager.isSyncing ? syncingTitle : syncNowTitle
     }
 
+    override var status: NSAttributedString? {
+        if let timestamp = profile.prefs.timestampForKey(PrefsKeys.KeyLastSyncFinishTime) {
+            let label = NSLocalizedString("Last synced: %@", comment: "Last synced time label beside Sync Now setting option. Argument is the relative date string.")
+            let formattedLabel = String(format: label, NSDate.fromTimestamp(timestamp).toRelativeTimeString())
+            let attributedString = NSMutableAttributedString(string: formattedLabel)
+            let attributes = [NSForegroundColorAttributeName: UIColor.grayColor(), NSFontAttributeName: UIFont.systemFontOfSize(12, weight: UIFontWeightRegular)]
+            let range = NSMakeRange(0, attributedString.length)
+            attributedString.setAttributes(attributes, range: range)
+            return attributedString
+        }
+
+        return nil
+    }
+
     override func onConfigureCell(cell: UITableViewCell) {
         cell.textLabel?.attributedText = title
+        cell.detailTextLabel?.attributedText = status
         cell.accessoryType = accessoryType
         cell.accessoryView = nil
         cell.userInteractionEnabled = !profile.syncManager.isSyncing
@@ -480,6 +504,22 @@ private class LicenseAndAcknowledgementsSetting: Setting {
     }
 }
 
+// Opens about:rights page in the content view controller
+private class YourRightsSetting: Setting {
+    override var title: NSAttributedString? {
+        return NSAttributedString(string: NSLocalizedString("Your Rights", comment: "Your Rights settings section title"), attributes:
+            [NSForegroundColorAttributeName: UIConstants.TableViewRowTextColor])
+    }
+
+    override var url: NSURL? {
+        return NSURL(string: "https://www.mozilla.org/about/legal/terms/firefox/")
+    }
+
+    private override func onClick(navigationController: UINavigationController?) {
+        setUpAndPushSettingsContentViewController(navigationController)
+    }
+}
+
 // Opens the on-boarding screen again
 private class ShowIntroductionSetting: Setting {
     let profile: Profile
@@ -581,6 +621,8 @@ private class ClearPrivateDataSetting: Setting {
     let profile: Profile
     var tabManager: TabManager!
 
+    override var accessoryType: UITableViewCellAccessoryType { return .DisclosureIndicator }
+
     init(settings: SettingsTableViewController) {
         self.profile = settings.profile
         self.tabManager = settings.tabManager
@@ -590,21 +632,10 @@ private class ClearPrivateDataSetting: Setting {
     }
 
     override func onClick(navigationController: UINavigationController?) {
-        let clearable = EverythingClearable(profile: profile, tabmanager: tabManager)
-
-        var title: String { return NSLocalizedString("Clear Everything", tableName: "ClearPrivateData", comment: "Title of the Clear private data dialog.") }
-        var message: String { return NSLocalizedString("Are you sure you want to clear all of your data? This will also close all open tabs.", tableName: "ClearPrivateData", comment: "Message shown in the dialog prompting users if they want to clear everything") }
-
-        let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.Alert)
-
-        let clearString = NSLocalizedString("Clear", tableName: "ClearPrivateData", comment: "Used as a button label in the dialog to Clear private data dialog")
-        alert.addAction(UIAlertAction(title: clearString, style: UIAlertActionStyle.Destructive, handler: { (action) -> Void in
-            clearable.clear() >>== { NSNotificationCenter.defaultCenter().postNotificationName(NotificationPrivateDataCleared, object: nil) }
-        }))
-
-        let cancelString = NSLocalizedString("Cancel", tableName: "ClearPrivateData", comment: "Used as a button label in the dialog to cancel clear private data dialog")
-        alert.addAction(UIAlertAction(title: cancelString, style: UIAlertActionStyle.Cancel, handler: { (action) -> Void in }))
-        navigationController?.presentViewController(alert, animated: true) { () -> Void in }
+        let viewController = ClearPrivateDataTableViewController()
+        viewController.profile = profile
+        viewController.tabManager = tabManager
+        navigationController?.pushViewController(viewController, animated: true)
     }
 }
 
@@ -628,6 +659,37 @@ private class SendCrashReportsSetting: Setting {
     @objc func switchValueChanged(control: UISwitch) {
         profile.prefs.setBool(control.on, forKey: "crashreports.send.always")
         configureActiveCrashReporter(profile.prefs.boolForKey("crashreports.send.always"))
+    }
+}
+
+private class ClosePrivateTabs: Setting {
+    let profile: Profile
+
+    private let titleText = NSLocalizedString("Close Private Tabs", tableName: "PrivateBrowsing", comment: "Setting for closing private tabs")
+    private let statusText =
+        NSLocalizedString("When Leaving Private Browsing", tableName: "PrivateBrowsing", comment: "Will be displayed in Settings under 'Close Private Tabs'")
+
+    override var status: NSAttributedString? {
+        return NSAttributedString(string: statusText, attributes: [NSForegroundColorAttributeName: UIConstants.TableViewHeaderTextColor])
+    }
+
+    init(settings: SettingsTableViewController) {
+        self.profile = settings.profile
+        super.init(title: NSAttributedString(string: titleText, attributes: [NSForegroundColorAttributeName: UIConstants.TableViewRowTextColor]))
+    }
+
+    override func onConfigureCell(cell: UITableViewCell) {
+        super.onConfigureCell(cell)
+        let control = UISwitch()
+        control.onTintColor = UIConstants.ControlTintColor
+        control.addTarget(self, action: "switchValueChanged:", forControlEvents: UIControlEvents.ValueChanged)
+        control.on = profile.prefs.boolForKey("settings.closePrivateTabs") ?? false
+        cell.accessoryView = control
+    }
+
+    @objc func switchValueChanged(control: UISwitch) {
+        profile.prefs.setBool(control.on, forKey: "settings.closePrivateTabs")
+        configureActiveCrashReporter(profile.prefs.boolForKey("settings.closePrivateTabs"))
     }
 }
 
@@ -722,13 +784,24 @@ class SettingsTableViewController: UITableViewController {
             SettingSection(title: NSAttributedString(string: NSLocalizedString("General", comment: "General settings section title")), children: generalSettings)
         ]
 
-
-        settings += [
-            SettingSection(title: NSAttributedString(string: privacyTitle), children: [
+        var privacySettings: [Setting]
+        if #available(iOS 9, *) {
+            privacySettings = [
+                ClearPrivateDataSetting(settings: self),
+                ClosePrivateTabs(settings: self),
+                SendCrashReportsSetting(settings: self),
+                PrivacyPolicySetting()
+            ]
+        } else {
+            privacySettings = [
                 ClearPrivateDataSetting(settings: self),
                 SendCrashReportsSetting(settings: self),
-                PrivacyPolicySetting(),
-            ]),
+                PrivacyPolicySetting()
+            ]
+        }
+
+        settings += [
+            SettingSection(title: NSAttributedString(string: privacyTitle), children: privacySettings),
             SettingSection(title: NSAttributedString(string: NSLocalizedString("Support", comment: "Support section title")), children: [
                 ShowIntroductionSetting(settings: self),
                 SendFeedbackSetting(),
@@ -737,6 +810,7 @@ class SettingsTableViewController: UITableViewController {
             SettingSection(title: NSAttributedString(string: NSLocalizedString("About", comment: "About settings section title")), children: [
                 VersionSetting(settings: self),
                 LicenseAndAcknowledgementsSetting(),
+                YourRightsSetting(),
                 DisconnectSetting(settings: self),
                 ExportBrowserDataSetting(settings: self),
                 DeleteExportedDataSetting(settings: self),
@@ -821,9 +895,16 @@ class SettingsTableViewController: UITableViewController {
 
     override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = tableView.dequeueReusableHeaderFooterViewWithIdentifier(SectionHeaderIdentifier) as! SettingsTableSectionHeaderView
-        let section = settings[section]
-        if let sectionTitle = section.title?.string {
+        let sectionSetting = settings[section]
+        if let sectionTitle = sectionSetting.title?.string {
             headerView.titleLabel.text = sectionTitle
+        }
+
+        // Hide the top border for the top section to avoid having a double line at the top
+        if section == 0 {
+            headerView.showTopBorder = false
+        } else {
+            headerView.showTopBorder = true
         }
 
         return headerView
@@ -850,43 +931,65 @@ class SettingsTableViewController: UITableViewController {
     }
 
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        if (indexPath.section == 0 && indexPath.row == 0) { return 64 } //make account/sign-in row taller, as per design specs
+        //make account/sign-in and close private tabs rows taller, as per design specs
+        if indexPath.section == 0 && indexPath.row == 0 {
+            return 64
+        }
+
+        if #available(iOS 9, *) {
+            if indexPath.section == 2 && indexPath.row == 1 {
+                return 64
+            }
+        }
+
         return 44
     }
 }
 
-class SettingsTableFooterView: UITableViewHeaderFooterView {
-
+class SettingsTableFooterView: UIView {
     var logo: UIImageView = {
         var image =  UIImageView(image: UIImage(named: "settingsFlatfox"))
         image.contentMode = UIViewContentMode.Center
         return image
     }()
 
-    override init(reuseIdentifier: String?) {
-        super.init(reuseIdentifier: reuseIdentifier)
-    }
+    private lazy var topBorder: CALayer = {
+        let topBorder = CALayer()
+        topBorder.backgroundColor = UIConstants.SeparatorColor.CGColor
+        return topBorder
+    }()
 
-    init(frame: CGRect) {
-        super.init(reuseIdentifier: nil)
-        self.frame = frame
-        self.contentView.backgroundColor = UIConstants.TableViewHeaderBackgroundColor
-        let topBorder = UIView(frame: CGRect(x: 0, y: 0, width: frame.width, height: 0.5))
-        topBorder.backgroundColor = UIConstants.TableViewSeparatorColor
-        addSubview(topBorder)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = UIConstants.TableViewHeaderBackgroundColor
+        layer.addSublayer(topBorder)
         addSubview(logo)
-
-        logo.snp_makeConstraints { (make) -> Void in
-            make.centerY.centerX.equalTo(self)
-        }
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        topBorder.frame = CGRectMake(0.0, 0.0, frame.size.width, 0.5)
+        logo.center = CGPoint(x: frame.size.width / 2, y: frame.size.height / 2)
+    }
 }
 
 class SettingsTableSectionHeaderView: UITableViewHeaderFooterView {
+    var showTopBorder: Bool = true {
+        didSet {
+            topBorder.hidden = !showTopBorder
+        }
+    }
+
+    var showBottomBorder: Bool = true {
+        didSet {
+            bottomBorder.hidden = !showBottomBorder
+        }
+    }
+
     var titleLabel: UILabel = {
         var headerLabel = UILabel()
         var frame = headerLabel.frame
@@ -898,36 +1001,35 @@ class SettingsTableSectionHeaderView: UITableViewHeaderFooterView {
         return headerLabel
     }()
 
+    private lazy var topBorder: CALayer = {
+        let topBorder = CALayer()
+        topBorder.backgroundColor = UIConstants.SeparatorColor.CGColor
+        return topBorder
+    }()
+
+    private lazy var bottomBorder: CALayer = {
+        let bottomBorder = CALayer()
+        bottomBorder.backgroundColor = UIConstants.SeparatorColor.CGColor
+        return bottomBorder
+    }()
+
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
-    }
-
-    init(frame: CGRect) {
-        super.init(reuseIdentifier: nil)
-        self.frame = frame
-        self.contentView.backgroundColor = UIConstants.TableViewHeaderBackgroundColor
+        contentView.backgroundColor = UIConstants.TableViewHeaderBackgroundColor
         addSubview(titleLabel)
-        self.clipsToBounds = true
+        clipsToBounds = true
+        layer.addSublayer(topBorder)
+        layer.addSublayer(bottomBorder)
     }
-
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func drawRect(rect: CGRect) {
-        let topBorder = CALayer()
-        topBorder.frame = CGRectMake(0.0, 0.0, rect.size.width, 0.5)
-        topBorder.backgroundColor = UIConstants.SeparatorColor.CGColor
-        layer.addSublayer(topBorder)
-        let bottomBorder = CALayer()
-        bottomBorder.frame = CGRectMake(0.0, rect.size.height - 0.5, rect.size.width, 0.5)
-        bottomBorder.backgroundColor = UIConstants.SeparatorColor.CGColor
-        layer.addSublayer(bottomBorder)
-    }
-
-   override func layoutSubviews() {
+    override func layoutSubviews() {
         super.layoutSubviews()
+        bottomBorder.frame = CGRectMake(0.0, frame.size.height - 0.5, frame.size.width, 0.5)
+        topBorder.frame = CGRectMake(0.0, 0.0, frame.size.width, 0.5)
         titleLabel.sizeToFit()
     }
 }
